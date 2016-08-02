@@ -90,7 +90,7 @@ namespace RegionTrigger {
 				Debug.WriteLine(e);
 				Debugger.Break();
 #endif
-				TShock.Log.ConsoleError("[RegionTrigger] Load regions failed. Check log for more information.");
+				TShock.Log.ConsoleError("[RegionTrigger] 加载区域失败. 检查日志获取更多信息.");
 				TShock.Log.Error(e.ToString());
 			}
 		}
@@ -101,7 +101,7 @@ namespace RegionTrigger {
 
 			var region = TShock.Regions.GetRegionByName(regionName);
 			if(region == null)
-				throw new Exception($"Couldn't find region named '{regionName}'!");
+				throw new Exception($"找不到名为 '{regionName}' 的区域!");
 
 			var rt = new RtRegion(-1, region.ID) {
 				Events = Events.ValidateEvents(events).Item1 ?? Events.None
@@ -115,11 +115,11 @@ namespace RegionTrigger {
 						rt.Id = result.Get<int>("Id");
 						Regions.Add(rt);
 					} else
-						throw new Exception("Database error: No affected rows.");
+						throw new Exception("数据库异常: 无影响行数.");
 				}
 			} catch(Exception e) {
 				TShock.Log.Error(e.ToString());
-				throw new Exception("Database error! Check logs for more information.", e);
+				throw new Exception("数据库错误! 查看日志获取更多信息.", e);
 			}
 		}
 
@@ -132,20 +132,20 @@ namespace RegionTrigger {
 				if(_database.Query("DELETE FROM RtRegions WHERE RegionId = @0", rt.Region.ID) != 0 &&
 					Regions.Remove(rt))
 					return;
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 			} catch(Exception e) {
 				TShock.Log.Error(e.ToString());
-				throw new Exception("Database error! Check logs for more information.", e);
+				throw new Exception("数据库错误! 查看日志获取更多信息.", e);
 			}
 		}
 
 		public void AddEvents(string regionName, string events) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			if(string.IsNullOrWhiteSpace(events) || events.ToLower() == Events.None)
-				throw new ArgumentException("Invalid events!");
+				throw new ArgumentException("无效事件!");
 
 			StringBuilder modified = new StringBuilder(rt.Events == Events.None ? "" : rt.Events);
 			var toAdd = Events.ValidateEventsList(events).Item1;
@@ -157,17 +157,17 @@ namespace RegionTrigger {
 				modified.Remove(0, 1);
 
 			if(_database.Query("UPDATE RtRegions SET Events = @0 WHERE Id = @1", modified, rt.Id) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 			rt.Events = modified.ToString();
 		}
 
 		public void RemoveEvents(string regionName, string events) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			if(string.IsNullOrWhiteSpace(events) || events.ToLower() == Events.None)
-				throw new ArgumentException("Invalid events!");
+				throw new ArgumentException("无效事件!");
 
 			var originEvents = rt.Events;
 			var toRemove = Events.ValidateEventsList(events).Item1;
@@ -178,13 +178,13 @@ namespace RegionTrigger {
 			if(_database.Query("UPDATE RtRegions SET Events = @0 WHERE Id = @1", rt.Events, rt.Id) != 0)
 				return;
 			rt.Events = originEvents;
-			throw new Exception("Database error: No affected rows.");
+			throw new Exception("数据库异常: 无影响行数.");
 		}
 
 		public void SetTempGroup(string regionName, string tempGroup) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			var isNull = string.IsNullOrWhiteSpace(tempGroup);
 			if(!isNull && !TShock.Groups.GroupExists(tempGroup))
@@ -201,24 +201,24 @@ namespace RegionTrigger {
 				: new object[] { group.Name, rt.Id };
 
 			if(_database.Query(query, args) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.TempGroup = group;
 		}
 
 		public void SetMsgInterval(string regionName, int interval) {
 			if(interval < 0)
-				throw new ArgumentException(@"Interval can't be lesser than zero!", nameof(interval));
+				throw new ArgumentException(@"间隔必须是非负整数!", nameof(interval));
 
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			if(rt.MsgInterval == interval)
 				return;
 
 			if(_database.Query("UPDATE RtRegions SET MessageInterval = @0 WHERE Id = @1", interval, rt.Id) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.MsgInterval = interval;
 		}
@@ -226,7 +226,7 @@ namespace RegionTrigger {
 		public void SetMessage(string regionName, string message) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			var isNull = string.IsNullOrWhiteSpace(message);
 			if(rt.Message == message)
@@ -240,7 +240,7 @@ namespace RegionTrigger {
 				: new object[] { message, rt.Id };
 
 			if(_database.Query(query, args) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.Message = message;
 		}
@@ -248,7 +248,7 @@ namespace RegionTrigger {
 		public void SetEnterMessage(string regionName, string message) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			var isNull = string.IsNullOrWhiteSpace(message);
 			if(rt.EnterMsg == message)
@@ -262,7 +262,7 @@ namespace RegionTrigger {
 				: new object[] { message, rt.Id };
 
 			if(_database.Query(query, args) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.EnterMsg = message;
 		}
@@ -270,7 +270,7 @@ namespace RegionTrigger {
 		public void SetLeaveMessage(string regionName, string message) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 
 			var isNull = string.IsNullOrWhiteSpace(message);
 			if(rt.LeaveMsg == message)
@@ -284,7 +284,7 @@ namespace RegionTrigger {
 				: new object[] { message, rt.Id };
 
 			if(_database.Query(query, args) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.LeaveMsg = message;
 		}
@@ -294,9 +294,9 @@ namespace RegionTrigger {
 				throw new ArgumentNullException(nameof(itemName));
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 			if(rt.ItemIsBanned(itemName))
-				throw new Exception($"{itemName} is already banned in this region.");
+				throw new Exception($"{itemName} 已被禁用.");
 
 			var modified = new StringBuilder(rt.Itembans);
 			if(modified.Length != 0)
@@ -304,7 +304,7 @@ namespace RegionTrigger {
 			modified.Append(itemName);
 
 			if(_database.Query("UPDATE RtRegions SET Itembans = @0 WHERE Id = @1", modified, rt.Id) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.Itembans = modified.ToString();
 		}
@@ -314,9 +314,9 @@ namespace RegionTrigger {
 				throw new ArgumentNullException(nameof(itemName));
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 			if(!rt.ItemIsBanned(itemName))
-				throw new Exception($"{itemName} is not banned in this region.");
+				throw new Exception($"{itemName} 没有被禁用.");
 			var origin = rt.Itembans;
 
 			if(rt.RemoveBannedItem(itemName) &&
@@ -324,17 +324,17 @@ namespace RegionTrigger {
 				return;
 
 			rt.Itembans = origin;
-			throw new Exception("Database error: No affected rows.");
+			throw new Exception("数据库异常: 无影响行数.");
 		}
 
 		public void AddProjban(string regionName, short projId) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 			var p = new Projectile();
 			p.SetDefaults(projId);
 			if(rt.ProjectileIsBanned(projId))
-				throw new Exception($"{p.name} has been already banned in this region.");
+				throw new Exception($"{p.name} 已被禁用.");
 
 			var modified = new StringBuilder(rt.Projbans);
 			if(modified.Length != 0)
@@ -342,7 +342,7 @@ namespace RegionTrigger {
 			modified.Append(projId);
 
 			if(_database.Query("UPDATE RtRegions SET Projbans = @0 WHERE Id = @1", modified, rt.Id) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.Projbans = modified.ToString();
 		}
@@ -350,11 +350,11 @@ namespace RegionTrigger {
 		public void RemoveProjban(string regionName, short projId) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 			var p = new Projectile();
 			p.SetDefaults(projId);
 			if(!rt.ProjectileIsBanned(projId))
-				throw new Exception($"{p.name} is not banned in this region.");
+				throw new Exception($"{p.name} 没有被禁用.");
 			var origin = rt.Projbans;
 
 			if(rt.RemoveBannedProjectile(projId) &&
@@ -362,15 +362,15 @@ namespace RegionTrigger {
 				return;
 
 			rt.Projbans = origin;
-			throw new Exception("Database error: No affected rows.");
+			throw new Exception("数据库异常: 无影响行数.");
 		}
 
 		public void AddTileban(string regionName, short tileId) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 			if(rt.TileIsBanned(tileId))
-				throw new Exception($"Tile {tileId} has been already banned in this region.");
+				throw new Exception($"物块 {tileId} 已被禁用.");
 
 			var modified = new StringBuilder(rt.Tilebans);
 			if(modified.Length != 0)
@@ -378,7 +378,7 @@ namespace RegionTrigger {
 			modified.Append(tileId);
 
 			if(_database.Query("UPDATE RtRegions SET Tilebans = @0 WHERE Id = @1", modified, rt.Id) == 0)
-				throw new Exception("Database error: No affected rows.");
+				throw new Exception("数据库异常: 无影响行数.");
 
 			rt.Tilebans = modified.ToString();
 		}
@@ -386,9 +386,9 @@ namespace RegionTrigger {
 		public void RemoveTileban(string regionName, short tileId) {
 			RtRegion rt = GetRtRegionByName(regionName);
 			if(rt == null)
-				throw new Exception("Invalid region!");
+				throw new Exception("无效区域!");
 			if(!rt.TileIsBanned(tileId))
-				throw new Exception($"Tile {tileId} is not banned in this region.");
+				throw new Exception($"物块 {tileId} 没有被禁用.");
 			var origin = rt.Tilebans;
 
 			if(rt.RemoveBannedTile(tileId) &&
@@ -396,7 +396,7 @@ namespace RegionTrigger {
 				return;
 
 			rt.Tilebans = origin;
-			throw new Exception("Database error: No affected rows.");
+			throw new Exception("数据库异常: 无影响行数.");
 		}
 
 		public void AddPermissions(string regionName, List<string> permissions) {
@@ -449,7 +449,7 @@ namespace RegionTrigger {
 		public class RegionDefinedException:Exception {
 			public readonly string RegionName;
 
-			public RegionDefinedException(string name) : base($"Region '{name}' was already defined!") {
+			public RegionDefinedException(string name) : base($"区域 {name} 的数据已经存在于数据库.") {
 				RegionName = name;
 			}
 		}

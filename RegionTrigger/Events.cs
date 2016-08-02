@@ -2,58 +2,74 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TShockAPI;
 
 namespace RegionTrigger {
 	internal static class Events {
-		[Description("Represents a event that does nothing. It can't be added.")]
+		[CNProperty("无")]
+		[Description("代表区域无事件.")]
 		public static readonly string None = "none"; // ok
 
-		[Description("Sends player a message when entering regions.")]
+		[CNProperty("进入消息")]
+		[Description("进入区域时发送消息.")]
 		public static readonly string EnterMsg = "entermsg"; // ok
 
-		[Description("Sends player a message when leaving regions.")]
+		[CNProperty("离去消息")]
+		[Description("离开区域时发送消息.")]
 		public static readonly string LeaveMsg = "leavemsg"; // ok
 
-		[Description("Sends player in regions a message.")]
+		[CNProperty("消息")]
+		[Description("以特定间隔区域内玩家发送消息.")]
 		public static readonly string Message = "message"; // ok
 
-		[Description("Alters players' tempgroups when they are in regions.")]
+		[CNProperty("临时组")]
+		[Description("应用区域内临时组.")]
 		public static readonly string TempGroup = "tempgroup"; // ok
 
-		[Description("Disallows players in regions from using banned items.")]
+		[CNProperty("禁物品")]
+		[Description("区域内禁用特定物品.")]
 		public static readonly string Itemban = "itemban"; // ok
 
-		[Description("Disallows players in regions from using banned projectiles.")]
+		[CNProperty("禁抛射体")]
+		[Description("区域内禁用特定抛射体.")]
 		public static readonly string Projban = "projban"; // ok
 
-		[Description("Disallows players in regions from using banned tiles.")]
+		[CNProperty("禁物块")]
+		[Description("区域内禁放特定物块.")]
 		public static readonly string Tileban = "tileban"; // ok
 
-		[Description("Kills players in regions when they enter.")]
+		[CNProperty("杀")]
+		[Description("杀死进入区域的玩家.")]
 		public static readonly string Kill = "kill"; // ok
 
-		[Description("Turns players' godmode on when they are in regions.")]
+		[CNProperty("无敌")]
+		[Description("区域内玩家无敌.")]
 		public static readonly string Godmode = "godmode"; // ok
 
-		[Description("Turns players' PvP status on when they are in regions.")]
+		[Description("区域内强制PvP.")]
 		public static readonly string Pvp = "pvp"; // ok
 
-		[Description("Disallows players from enabling their pvp mode.")]
+		[CNProperty("禁PvP")]
+		[Description("区域内禁止PvP.")]
 		public static readonly string NoPvp = "nopvp"; // ok
 
-		[Description("Disallows players from entering regions.")]
-		public static readonly string Private = "private"; // ok
+		[CNProperty("私")]
+		[Description("禁止进入区域.")]
+		public static readonly string Private = "private";
 
-		[Description("(DONT WORK!)Enables region chatting.")]
+		[CNProperty("区域聊天")]
+		[Description("(开发中) 开启区域聊天.")]
 		public static readonly string RegionChat = "regionchat";
 
-		[Description("(DONT WORK!)Changes perspectives. For gaming use.")]
+		[CNProperty("切换视角")]
+		[Description("(开发中) 更改视角, 用于赛事.")]
 		public static readonly string ThirdView = "thirdview";
 
-		[Description("Temporary permissions for players in region.")]
+		[Description("区域内玩家获得临时权限.")]
 		public static readonly string TempPermission = "temppermission"; // ok
 
+		public static List<string> CNEventsList = new List<string>();
 		public static List<string> EventsList = new List<string>();
 		public static Dictionary<string, string> EventsDescriptions = new Dictionary<string, string>();
 
@@ -65,15 +81,30 @@ namespace RegionTrigger {
 
 				EventsList.Add((string)fieldInfo.GetValue(null));
 
+				var propattr =
+					fieldInfo.GetCustomAttributes(false).FirstOrDefault(o => o is CNProperty) as CNProperty;
+				var prop = !string.IsNullOrWhiteSpace(propattr?.PropertyName) ? propattr.PropertyName : fieldInfo.Name;
+
 				var descattr =
 					fieldInfo.GetCustomAttributes(false).FirstOrDefault(o => o is DescriptionAttribute) as DescriptionAttribute;
-				var desc = !string.IsNullOrWhiteSpace(descattr?.Description) ? descattr.Description : "None";
+				var desc = !string.IsNullOrWhiteSpace(descattr?.Description) ? descattr.Description : "无";
+
+				CNEventsList.Add(prop);
 				EventsDescriptions.Add(fieldInfo.Name, desc);
 			}
 		}
 
 		internal static bool Contains(string @event)
-			=> !string.IsNullOrWhiteSpace(@event) && @event != None && EventsList.Contains(@event);
+			=> !string.IsNullOrWhiteSpace(@event) && @event != None && (EventsList.Contains(@event) || CNEventsList.Contains(@event));
+
+		internal static string GetCnName(string @event) 
+			=> EventsList.Contains(@event) ? CNEventsList[EventsList.IndexOf(@event)] : null;
+
+		internal static string GetEnName(string @event) {
+			if(Regex.IsMatch(@event, "^[a-zA-Z]+"))
+				return @event;
+			return CNEventsList.Contains(@event) ? EventsList[CNEventsList.IndexOf(@event)] : null;
+		}
 
 		/// <summary>
 		/// Checks given events
@@ -108,7 +139,7 @@ namespace RegionTrigger {
 				.Where(e => !string.IsNullOrWhiteSpace(e))
 				.ForEach(e => {
 					if(Contains(e))
-						valid.Add(e);
+						valid.Add(GetEnName(e));
 					else
 						invalid.Add(e);
 				});

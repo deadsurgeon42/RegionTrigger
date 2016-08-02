@@ -33,6 +33,14 @@ namespace RegionTrigger {
 			}
 		}
 
+		public string CNEvents {
+			get {
+				return _events.Count == 0
+					? global::RegionTrigger.Events.GetCnName(global::RegionTrigger.Events.None)
+					: string.Join(",", _events.Select(e => global::RegionTrigger.Events.GetCnName(e)));
+			}
+		}
+
 		private readonly List<string> _itembans = new List<string>();
 		public string Itembans {
 			get { return string.Join(",", _itembans); }

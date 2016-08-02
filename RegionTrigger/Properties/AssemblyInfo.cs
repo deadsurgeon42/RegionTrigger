@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("RegionTrigger")]
-[assembly: AssemblyDescription("Perform actions in regions where players are active.")]
+[assembly: AssemblyDescription("区域内触发特定事件.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("MistZZT")]
 [assembly: AssemblyProduct("RegionTrigger")]
